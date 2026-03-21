@@ -2,17 +2,21 @@ local GOLCell = {}
 GOLCell.__index = GOLCell
 
 ---@class GOLCell
----@field pos_x integer
----@field pos_y integer
-
----@return GOLCell | nil
-function GOLCell.new()
+---@field x integer
+---@field y integer
+function GOLCell.new(x, y)
 	local self = setmetatable({}, GOLCell)
 
-	self.pos_x = 0
-	self.pos_y = 0
+	self.x = x
+	self.y = y
+
+	self.character = "X"
 
 	return self
+end
+
+function GOLCell:key()
+	return tostring(self.x) .. "-" .. tostring(self.y)
 end
 
 return GOLCell

@@ -1,6 +1,6 @@
 local M = {}
 
-local GOLNet = require("gol-net")
+local GOLGrid = require("gol-grid")
 
 ---Creates the dashboard buffer and fills it with data
 ---@param username string
@@ -10,11 +10,13 @@ function M.create_dashboard(username)
 	vim.bo.bufhidden = "wipe"
 	vim.bo.swapfile = false
 
-	local gol_net = GOLNet.new(30, 7)
-	gol_net:insert(1, 1, "A")
-	gol_net:insert(29, 5, "B")
+	local gol_net = GOLGrid.new(30, 7)
+	gol_net:insert(1, 1)
+	gol_net:insert(3, 3)
+	gol_net:insert(29, 5)
 
-	vim.api.nvim_buf_set_lines(0, 0, -1, false, gol_net:as_lines())
+	-- TODO I want to prepare a dedicated buffer for the GOL grid. For that I want to develop a BufferRenderer
+	vim.api.nvim_buf_set_lines(0, 0, -1, false, gol_net:render())
 	vim.bo.modifiable = false
 	vim.bo.readonly = true
 end
