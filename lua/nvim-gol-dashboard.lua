@@ -7,11 +7,7 @@ local GOLDashboard = require("gol-dashboard")
 function M.setup(opts)
 	opts = opts or {}
 
-	local dashboard = GOLDashboard.new()
-
-	vim.on_key(function()
-		dashboard:update()
-	end)
+	GOLDashboard.new()
 end
 
 return M
