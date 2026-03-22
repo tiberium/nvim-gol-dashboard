@@ -1,13 +1,17 @@
 local M = {}
 
-local DashboardView = require("dashboard-view")
+local GOLDashboard = require("gol-dashboard")
 
 ---Function to setup the plugin
 ---@param opts table|nil Configuration options
 function M.setup(opts)
 	opts = opts or {}
 
-	DashboardView.create_dashboard("testing")
+	local dashboard = GOLDashboard.new()
+
+	vim.on_key(function()
+		dashboard:update()
+	end)
 end
 
 return M

@@ -4,13 +4,13 @@ GOLCell.__index = GOLCell
 ---@class GOLCell
 ---@field x integer
 ---@field y integer
-function GOLCell.new(x, y)
+function GOLCell.new(x, y, char)
 	local self = setmetatable({}, GOLCell)
 
 	self.x = x
 	self.y = y
 
-	self.character = "X"
+	self.char = char or "X"
 
 	return self
 end
