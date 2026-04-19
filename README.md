@@ -1,4 +1,4 @@
-# nvim-gof-dashboard
+# nvim-gol-dashboard
 
 ## Configuration
 
