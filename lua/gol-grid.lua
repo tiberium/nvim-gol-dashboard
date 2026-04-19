@@ -57,7 +57,7 @@ end
 function GOLGrid:count_live_cells()
 	local count = 0
 
-	for _ in pairs(self.grid) do
+	for _cell_key in pairs(self.grid) do
 		count = count + 1
 	end
 

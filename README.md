@@ -1,6 +1,6 @@
 # nvim-gof-dashboard
 
-## Konfiguracja
+## Configuration
 
 ```lua
 require("nvim-gol-dashboard").setup({
