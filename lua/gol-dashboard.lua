@@ -2,10 +2,24 @@ local GOLDashboard = {}
 GOLDashboard.__index = GOLDashboard
 
 local GOLGrid = require("gol-grid")
+local BufferHelpers = require("buffer-helpers")
+
+local function normalize_header_lines(header_lines)
+	if type(header_lines) == "string" then
+		return { header_lines }
+	end
+
+	if type(header_lines) == "table" then
+		return header_lines
+	end
+
+	return { "Game of Life" }
+end
 
 ---@class GOLDashboard
-function GOLDashboard.new()
+function GOLDashboard.new(opts)
 	local self = setmetatable({}, GOLDashboard)
+	opts = opts or {}
 
 	vim.cmd("enew")
 	vim.bo.buftype = "nofile"
@@ -13,6 +27,9 @@ function GOLDashboard.new()
 	vim.bo.swapfile = false
 
 	self.buf_id = vim.api.nvim_get_current_buf()
+	self.step_count = 0
+	self.frame_char = (opts.frame_char and tostring(opts.frame_char):sub(1, 1)) or "#"
+	self.header_lines = normalize_header_lines(opts.header_lines)
 
 	self.gol_net = GOLGrid.new(30, 30)
 	-- oscillating pattern
@@ -29,19 +46,73 @@ function GOLDashboard.new()
 	self.gol_net:insert(11, 10)
 	self.gol_net:insert(11, 11)
 
-	-- TODO I want to prepare a dedicated buffer for the GOL grid. For that I want to develop a BufferRenderer
-	vim.api.nvim_buf_set_lines(0, 0, -1, false, self.gol_net:render())
-	vim.bo.modifiable = false
-	vim.bo.readonly = true
-
-	local first_neighbor = self.gol_net:count_live_neighbors("2-3")
-
-	-- vim prinf first neighbor couny
-	print("First neighbor count: " .. first_neighbor)
+	self:_render()
 
 	self:_setup_keys()
 
 	return self
+end
+
+function GOLDashboard:_render()
+	local rendered_lines = self:_compose_dashboard_lines()
+
+	BufferHelpers.with_modifiable_buffer(self.buf_id, function()
+		vim.api.nvim_buf_set_lines(self.buf_id, 0, -1, false, rendered_lines)
+	end)
+end
+
+function GOLDashboard:_compose_dashboard_lines()
+	local grid_lines = self.gol_net:render()
+	local frame_width = self.gol_net.x_size + 2
+	local top_bottom_border = string.rep(self.frame_char, frame_width)
+	local content_lines = {}
+
+	for _, header_line in ipairs(self.header_lines) do
+		table.insert(content_lines, header_line)
+	end
+
+	table.insert(content_lines, "")
+	table.insert(content_lines, top_bottom_border)
+
+	for _, grid_line in ipairs(grid_lines) do
+		table.insert(content_lines, self.frame_char .. grid_line .. self.frame_char)
+	end
+
+	table.insert(content_lines, top_bottom_border)
+	table.insert(content_lines, "")
+
+	local live_cells = self.gol_net:count_live_cells()
+	table.insert(content_lines, "Live cells: " .. live_cells .. " | Step: " .. self.step_count)
+
+	return self:_center_content(content_lines)
+end
+
+function GOLDashboard:_center_content(content_lines)
+	local win_width = vim.api.nvim_win_get_width(0)
+	local win_height = vim.api.nvim_win_get_height(0)
+	local content_width = 0
+
+	for _, line in ipairs(content_lines) do
+		if #line > content_width then
+			content_width = #line
+		end
+	end
+
+	local horizontal_padding = math.max(math.floor((win_width - content_width) / 2), 0)
+	local vertical_padding = math.max(math.floor((win_height - #content_lines) / 2), 0)
+
+	local centered_lines = {}
+	local left_padding = string.rep(" ", horizontal_padding)
+
+	for _ = 1, vertical_padding do
+		table.insert(centered_lines, "")
+	end
+
+	for _, line in ipairs(content_lines) do
+		table.insert(centered_lines, left_padding .. line)
+	end
+
+	return centered_lines
 end
 
 -- Register key listeners scoped to the dashboard buffer only.
@@ -80,12 +151,9 @@ end
 --TODO move to buffors
 function GOLDashboard:update()
 	self.gol_net:step()
+	self.step_count = self.step_count + 1
 
-	vim.bo[self.buf_id].modifiable = true
-	vim.bo[self.buf_id].readonly = false
-	vim.api.nvim_buf_set_lines(self.buf_id, 0, -1, false, self.gol_net:render())
-	vim.bo[self.buf_id].modifiable = false
-	vim.bo[self.buf_id].readonly = true
+	self:_render()
 end
 
 return GOLDashboard
