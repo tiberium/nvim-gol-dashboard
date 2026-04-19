@@ -7,7 +7,7 @@ local GOLDashboard = require("gol-dashboard")
 function M.setup(opts)
 	opts = opts or {}
 
-	GOLDashboard.new()
+	GOLDashboard.new(opts)
 end
 
 return M
